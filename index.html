@@ -466,14 +466,14 @@
       </div>
     </div>
     <div>
-      <form class="inquiry" name="indianola-inquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-        <input type="hidden" name="form-name" value="indianola-inquiry">
-        <p style="display:none;"><label>Don't fill this out: <input name="bot-field"></label></p>
-        <input type="text" name="name" placeholder="Full name" required>
-        <input type="email" name="email" placeholder="Email address" required>
-        <input type="tel" name="phone" placeholder="Phone number">
-        <textarea name="message" rows="4" placeholder="Tell us about your timeline or questions..."></textarea>
-        <button type="submit">Request Private Preview</button>
+      <form class="inquiry" id="indianola-inquiry">
+        <p style="display:none;"><label>Don't fill this out: <input name="bot-field" id="bot-field"></label></p>
+        <input type="text" name="name" id="field-name" placeholder="Full name" required>
+        <input type="email" name="email" id="field-email" placeholder="Email address" required>
+        <input type="tel" name="phone" id="field-phone" placeholder="Phone number">
+        <textarea name="message" id="field-message" rows="4" placeholder="Tell us about your timeline or questions..."></textarea>
+        <button type="submit" id="inquiry-submit">Request Private Preview</button>
+        <p id="inquiry-status" style="font-size:14px; margin-top:8px; display:none;"></p>
       </form>
     </div>
   </div>
@@ -487,43 +487,105 @@
 </footer>
 
 <script>
-  gsap.registerPlugin(ScrollTrigger);
+  // ---------- Lead form submission (posts to Cloudflare Worker -> Monday.com) ----------
+  // This block is intentionally separate from the GSAP/animation script below, and has
+  // zero dependency on it. If GSAP fails to load for any reason, the form must still work.
+  //
+  // IMPORTANT: replace this with your actual deployed Worker URL once it's live.
+  const WORKER_URL = "https://snowy-fire-a699.kris-384.workers.dev";
 
-  // Nav background on scroll
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 60);
-  });
+  const form = document.getElementById('indianola-inquiry');
+  const statusEl = document.getElementById('inquiry-status');
+  const submitBtn = document.getElementById('inquiry-submit');
 
-  // Hero entrance
-  gsap.set(['.hero-eyebrow','.hero-title','.hero-sub','.hero-facts','.hero-ctas'], {opacity:0, y:26});
-  gsap.timeline({delay:.15})
-    .to('.hero-eyebrow',{opacity:1,y:0,duration:.6,ease:'power3.out'})
-    .to('.hero-title',{opacity:1,y:0,duration:.9,ease:'power3.out'},'-=.35')
-    .to('.hero-sub',{opacity:1,y:0,duration:.7,ease:'power2.out'},'-=.5')
-    .to('.hero-facts',{opacity:1,y:0,duration:.6,ease:'power2.out'},'-=.4')
-    .to('.hero-ctas',{opacity:1,y:0,duration:.6,ease:'power2.out'},'-=.4');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  // Generic section reveals
-  document.querySelectorAll('.room-section, .feat-card, .progress-visual, .progress-copy, .location .wrap > div, .cta-left, .inquiry').forEach(el=>{
-    gsap.from(el, {
-      scrollTrigger:{trigger:el, start:'top 85%'},
-      opacity:0, y:30, duration:.7, ease:'power2.out'
-    });
-  });
+    const payload = {
+      name: document.getElementById('field-name').value,
+      email: document.getElementById('field-email').value,
+      phone: document.getElementById('field-phone').value,
+      message: document.getElementById('field-message').value,
+      botField: document.getElementById('bot-field').value,
+    };
 
-  // Room index active tab highlight
-  const tabs = document.querySelectorAll('.room-tab');
-  const sections = document.querySelectorAll('.room-section');
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        const id = entry.target.getAttribute('id');
-        tabs.forEach(t=>t.classList.toggle('active', t.getAttribute('href') === '#'+id));
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    statusEl.style.display = 'none';
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (res.ok && result.ok) {
+        form.reset();
+        statusEl.textContent = "Thanks — we'll be in touch shortly.";
+        statusEl.style.color = '#FCFBF8';
+        statusEl.style.display = 'block';
+        submitBtn.textContent = 'Request Private Preview';
+      } else {
+        throw new Error(result.error || 'Something went wrong');
       }
+    } catch (err) {
+      statusEl.textContent = "Something went wrong — please call or email us directly.";
+      statusEl.style.color = '#E9A6A6';
+      statusEl.style.display = 'block';
+      submitBtn.textContent = 'Request Private Preview';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+<script>
+  // ---------- Visual polish (GSAP animations, scroll reveals, nav, room-index tabs) ----------
+  // Wrapped defensively: if this fails for any reason (CDN blocked, etc.), the page and
+  // the form above still work fine - this only controls animation/visual flourish.
+  try {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Nav background on scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
     });
-  }, {rootMargin:'-40% 0px -50% 0px'});
-  sections.forEach(s=>io.observe(s));
+
+    // Hero entrance
+    gsap.set(['.hero-eyebrow','.hero-title','.hero-sub','.hero-facts','.hero-ctas'], {opacity:0, y:26});
+    gsap.timeline({delay:.15})
+      .to('.hero-eyebrow',{opacity:1,y:0,duration:.6,ease:'power3.out'})
+      .to('.hero-title',{opacity:1,y:0,duration:.9,ease:'power3.out'},'-=.35')
+      .to('.hero-sub',{opacity:1,y:0,duration:.7,ease:'power2.out'},'-=.5')
+      .to('.hero-facts',{opacity:1,y:0,duration:.6,ease:'power2.out'},'-=.4')
+      .to('.hero-ctas',{opacity:1,y:0,duration:.6,ease:'power2.out'},'-=.4');
+
+    // Generic section reveals
+    document.querySelectorAll('.room-section, .feat-card, .progress-visual, .progress-copy, .location .wrap > div, .cta-left, .inquiry').forEach(el=>{
+      gsap.from(el, {
+        scrollTrigger:{trigger:el, start:'top 85%'},
+        opacity:0, y:30, duration:.7, ease:'power2.out'
+      });
+    });
+
+    // Room index active tab highlight
+    const tabs = document.querySelectorAll('.room-tab');
+    const sections = document.querySelectorAll('.room-section');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const id = entry.target.getAttribute('id');
+          tabs.forEach(t=>t.classList.toggle('active', t.getAttribute('href') === '#'+id));
+        }
+      });
+    }, {rootMargin:'-40% 0px -50% 0px'});
+    sections.forEach(s=>io.observe(s));
+  } catch (err) {
+    console.warn('Animation script failed to initialize, page will still function:', err);
+  }
 </script>
 
 </body>
