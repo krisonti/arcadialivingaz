@@ -202,10 +202,27 @@
 
   /* ---------- PROGRESS ---------- */
   .progress{padding:100px 0;}
-  .progress .wrap{display:flex; justify-content:center;}
+  .progress .wrap{display:flex; flex-direction:column; align-items:center;}
   .progress-copy-centered{max-width:640px; text-align:center;}
   .progress-copy h2{font-size:clamp(28px,3.6vw,38px); font-weight:400; margin:12px 0 18px;}
   .progress-copy p{color:var(--muted); font-size:16px; line-height:1.7; font-weight:300; margin-bottom:12px;}
+
+  .progress-photos{width:100%; margin-top:60px; display:flex; flex-direction:column; gap:50px;}
+  .progress-photo-group{width:100%;}
+  .progress-photo-label{
+    font-size:13px; letter-spacing:.04em; color:var(--charcoal); font-weight:500;
+    margin-bottom:16px; border-bottom:1px solid var(--hairline); padding-bottom:12px;
+  }
+  .progress-photo-label .tag{
+    font-family:'Fraunces',serif; font-style:italic; color:var(--brass); font-weight:400;
+    margin-right:8px;
+  }
+  .progress-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+  .progress-grid figure{overflow:hidden; background:#111;}
+  .progress-grid img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease; aspect-ratio:4/3;}
+  .progress-grid figure:hover img{transform:scale(1.04);}
+  @media (max-width:820px){ .progress-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:560px){ .progress-grid{grid-template-columns:1fr;} }
 
   /* ---------- LOCATION ---------- */
   .location{padding:0 0 100px;}
@@ -430,8 +447,38 @@
     <div class="progress-copy progress-copy-centered">
       <span class="eyebrow">Under Construction</span>
       <h2>Watch it get built, not just rendered.</h2>
-      <p>4334 E Indianola Ave is actively under construction, with an estimated completion of Summer 2026. As framing, mechanical, and finish work progress, real jobsite photos will be added here alongside the original renders — so you can track the build in real time, not just imagine it.</p>
-      <p>Check back for monthly progress updates, or request a private walkthrough once the home reaches a stage that's ready to show.</p>
+      <p>4334 E Indianola Ave is actively under construction, with an estimated completion of Summer 2026. Real jobsite photos are added here as framing, mechanical, and finish work progress — so you can track the build in real time, not just imagine it.</p>
+      <p>Check back for updates, or request a private walkthrough once the home reaches a stage that's ready to show.</p>
+    </div>
+
+    <div class="progress-photos">
+
+      <div class="progress-photo-group">
+        <div class="progress-photo-label"><span class="tag">Real Photos</span> Primary Suite</div>
+        <div class="progress-grid">
+          <figure><img src="assets/photos/real-primary-bath-1.jpg" alt="Real photo of completed primary bathroom soaking tub" loading="lazy"></figure>
+          <figure><img src="assets/photos/real-primary-bath-2.jpg" alt="Real photo of completed primary bathroom" loading="lazy"></figure>
+        </div>
+      </div>
+
+      <div class="progress-photo-group">
+        <div class="progress-photo-label"><span class="tag">Real Photos</span> Landscaping &amp; Rear Yard Lighting</div>
+        <div class="progress-grid">
+          <figure><img src="assets/photos/real-landscape-2.jpg" alt="Real photo of backyard landscape lighting at dusk" loading="lazy"></figure>
+          <figure><img src="assets/photos/real-landscape-3.jpg" alt="Real photo of desert landscaping with cacti and lighting" loading="lazy"></figure>
+          <figure><img src="assets/photos/real-landscape-1.jpg" alt="Real photo of side yard with landscape lighting" loading="lazy"></figure>
+        </div>
+      </div>
+
+      <div class="progress-photo-group">
+        <div class="progress-photo-label"><span class="tag">Real Photos</span> Exterior at Dusk &amp; Night</div>
+        <div class="progress-grid">
+          <figure><img src="assets/photos/real-exterior-night-1.jpg" alt="Real photo of front exterior at night with lit facade" loading="lazy"></figure>
+          <figure><img src="assets/photos/real-exterior-dusk-1.jpg" alt="Real photo of front exterior at dusk" loading="lazy"></figure>
+          <figure><img src="assets/photos/real-exterior-dusk-2.jpg" alt="Real photo of front exterior at dusk, wider angle" loading="lazy"></figure>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -564,7 +611,7 @@
       .to('.hero-ctas',{opacity:1,y:0,duration:.6,ease:'power2.out'},'-=.4');
 
     // Generic section reveals
-    document.querySelectorAll('.room-section, .feat-card, .progress-visual, .progress-copy, .location .wrap > div, .cta-left, .inquiry').forEach(el=>{
+    document.querySelectorAll('.room-section, .feat-card, .progress-visual, .progress-copy, .progress-photo-group, .location .wrap > div, .cta-left, .inquiry').forEach(el=>{
       gsap.from(el, {
         scrollTrigger:{trigger:el, start:'top 85%'},
         opacity:0, y:30, duration:.7, ease:'power2.out'
